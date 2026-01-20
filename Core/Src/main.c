@@ -28,7 +28,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+
+//this include to separate .h - TODO need to implement nfc_io extern functions - won't build without them
+//#include "../M24SR/m24sr.h"
 
 
 
@@ -50,6 +52,9 @@
 //I2C slave address + R or W bit -> TODO move this to separate .h eventually
 #define M24SR_I2C_WRITE 0xAC //datasheet p. 60 section 7.1
 #define M24SR_I2C_READ  0xAD
+
+// TODO: remove after m24sr library can be included
+#define M24SR_GPO_POLLING      (uint8_t) 0x00
 
 /* USER CODE END PM */
 
@@ -107,9 +112,11 @@ int main(void)
   char formatted_string[100];
 
 
-  M24SR_Init(NFC_WRITE, M24SR_GPO_POLLING);
+  //I2C init + GPO polling
+  M24SR_Init(M24SR_I2C_READ, M24SR_GPO_POLLING);
 
-  M24SR_ManageRFGPO(NFC_WRITE, 1);
+  //datasheet p. 24
+  M24SR_ManageRFGPO(M24SR_I2C_READ, 1);
 
 
 

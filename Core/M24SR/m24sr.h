@@ -30,7 +30,6 @@
 
 
 #include "i2c.h"
-#include "nfc_io.h"
 /** @addtogroup BSP
   * @{
   */
