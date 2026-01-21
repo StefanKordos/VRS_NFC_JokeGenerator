@@ -8,7 +8,7 @@
 #ifndef INC_NFC_IO_H_
 #define INC_NFC_IO_H_
 
-#include "m24sr.h"
+#include "../M24SR/m24sr.h"
 #include "stm32f3xx_ll_i2c.h"
 #include "stm32f3xx_ll_gpio.h"
 
