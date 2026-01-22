@@ -16,8 +16,10 @@ typedef enum {
 } NFC_Request_t;
 
 /**
- * @brief Analyze received NFC message
- * @param rxText Text received from NFC tag ("GET_JOKE" or "ADD_JOKE:...") ??? TODO
+ * @brief Parse NFC text command
+ * Expected formats (???):TODO choose right format
+ *  - "GET_JOKE"
+ *  - "ADD_JOKE:<text>"
  * @return type of NFC request
  */
 NFC_Request_t NFC_ParseRequest(char *rxText);

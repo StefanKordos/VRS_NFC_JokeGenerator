@@ -3,6 +3,15 @@
  *
  *  Created on: Jan 20, 2026
  *      Author: radoj
+ ******************************************************************************
+ * - Parses NFC text requests
+ * - Decides requested operation
+ * - Prepares response
+ * - Writes response as NDEF to NFC tag
+ *
+ * Depends on:
+ *  - Section 2: receiving NFC text
+ *  - SD card module: joke storage
  */
 
 #include "nfc_io.h"
@@ -11,7 +20,7 @@
 #include "m24sr.h"
 #include <string.h>
 
-NFC_Request_t NFC_ParseRequest(char *rxText) //TODO format ?
+NFC_Request_t NFC_ParseRequest(char *rxText)
 {
     if (rxText == NULL)
         return NFC_REQ_INVALID;
@@ -37,28 +46,37 @@ void NFC_ProcessRequest(char *rxText)
     switch (request)
     {
         case NFC_REQ_GET_JOKE:
-            /*
-             * 1. Call function from sdCard.c (random joke)
-             * 2. result store to responseText
-             * 3. convert responseText → NDEF
-             * 4. store NDEF do NFC tag
-             */
-            break;
+        	/*
+			 * TODO (section SD):
+			 * - read random joke from SD card
+			 * - store into responseText
+			 */
+			strcpy(responseText, "GET_JOKE request received");
+			break;
 
         case NFC_REQ_ADD_JOKE:
-            /*
-             * 1. Extract joke from rxText
-             * 2. Call function that stores joke to SD
-             * 3. Prepare confirmation (success/not success) to responseText
-             * 4. Write confirmation to NFC
-             */
-            break;
+        	/*
+			 * TODO (section SD):
+			 * - extract joke text from rxText
+			 * - store joke into SD card
+			 */
+			strcpy(responseText, "ADD_JOKE request received");
+			break;
 
         default:
             /*
              * Not valid request
              * Write error message to NFC
              */
-            break;
+        	strcpy(responseText, "INVALID REQUEST");
+		    break;
     }
+    /*
+     * Convert response text to NDEF and write to NFC tag via I2C
+     * +13 bytes = NDEF Text Record overhead (header + type + language code)
+     */
+	convert_to_NDEF(responseText, ndefBuffer);
+	ndefLength = strlen(responseText) + 13;
+
+	Write_Joke_TO_NFC(ndefBuffer, ndefLength);
 }
