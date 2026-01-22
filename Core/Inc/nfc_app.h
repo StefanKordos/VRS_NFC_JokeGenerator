@@ -8,7 +8,7 @@
 #ifndef INC_NFC_APP_H_
 #define INC_NFC_APP_H_
 
-/*Types of NFC request*/
+/*Types of NFC requests*/
 typedef enum {
     NFC_REQ_INVALID = 0,
     NFC_REQ_GET_JOKE,
@@ -16,8 +16,8 @@ typedef enum {
 } NFC_Request_t;
 
 /**
- * @brief Analyze received message
- * @param rxText Text received from NFC tag
+ * @brief Analyze received NFC message
+ * @param rxText Text received from NFC tag ("GET_JOKE" or "ADD_JOKE:...") ??? TODO
  * @return type of NFC request
  */
 NFC_Request_t NFC_ParseRequest(char *rxText);
