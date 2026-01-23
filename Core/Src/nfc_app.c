@@ -15,9 +15,11 @@
  */
 
 #include "nfc_io.h"
+#include "nfc_app.h"
 
 //#include "sdCard.h" TODO
-#include "m24sr.h"
+//#include "m24sr.h"
+#include "../M24SR/m24sr.h"
 #include <string.h>
 
 NFC_Request_t NFC_ParseRequest(char *rxText)
@@ -33,6 +35,7 @@ NFC_Request_t NFC_ParseRequest(char *rxText)
 
     return NFC_REQ_INVALID;
 }
+
 
 void NFC_ProcessRequest(char *rxText)
 {

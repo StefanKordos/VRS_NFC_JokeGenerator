@@ -52,5 +52,19 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+void NFC_IO_Init(uint8_t GpoIrqEnable)
+{
+
+    //already init in .ioc
+	//maybe add EXTI interrupt here if needed
+}
+
+void NFC_IO_DeInit(void)
+{
+    LL_GPIO_DeInit(GPIOA);
+
+    //add NVIC disable if using interrupt
+}
+
 
 /* USER CODE END 2 */
