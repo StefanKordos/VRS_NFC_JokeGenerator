@@ -50,12 +50,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
-//I2C slave address + R or W bit -> TODO move this to separate .h eventually
-#define M24SR_I2C_WRITE 0xAC //datasheet p. 60 section 7.1
-#define M24SR_I2C_READ  0xAD
-
-// TODO: remove after m24sr library can be included
-#define M24SR_GPO_POLLING      (uint8_t) 0x00
 
 /* USER CODE END PM */
 
