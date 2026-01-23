@@ -25,3 +25,14 @@ uint16_t NFC_IO_IsDeviceReady(uint8_t Addr, uint32_t Trials)
 
 	return NFC_IO_ERROR_TIMEOUT;
 }
+
+void NFC_IO_Delay(uint32_t Delay)
+{
+    HAL_Delay(Delay);
+}
+
+void NFC_IO_ReadState(uint8_t *pPinState)
+{
+    if (pPinState == NULL) return; //-> null ptr might occur
+    *pPinState = (uint8_t)LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6); //our GPO polling pin
+}

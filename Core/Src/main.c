@@ -30,7 +30,7 @@
 #include <string.h>
 #include <nfc_io.h>
 
-//this include to separate .h - TODO need to implement nfc_io extern functions - won't build without them
+//this include to separate .h
 //#include "../M24SR/m24sr.h"
 
 
