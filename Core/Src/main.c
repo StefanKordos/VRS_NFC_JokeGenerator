@@ -108,23 +108,49 @@ int main(void)
 
 
   //I2C init + GPO polling
-  M24SR_Init(M24SR_I2C_READ, M24SR_GPO_POLLING);
+  M24SR_Init(M24SR_I2C_WRITE, M24SR_GPO_POLLING);
 
   //datasheet p. 24
-  M24SR_ManageRFGPO(M24SR_I2C_READ, 1);
+  M24SR_ManageRFGPO(M24SR_I2C_WRITE, 1);
 
-
+  //uint8_t state;
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  uint16_t status = NFC_IO_IsDeviceReady(M24SR_I2C_READ, 3);
+
+  if (status == NFC_IO_STATUS_SUCCESS)
+  {
+      USART2_PutBuffer((uint8_t *)"M24SR READY\r\n", 13);
+  }
+  else
+  {
+      USART2_PutBuffer((uint8_t *)"M24SR NOT READY\r\n", 18);
+  }
+
   while (1)
   {
 
-	  sprintf(formatted_string, "test\n\r\0");
-	  USART2_PutBuffer(formatted_string, strlen(formatted_string));
-	  LL_mDelay(100);
+	  //sprintf(formatted_string, "test\n\r\0");
+	  //USART2_PutBuffer(formatted_string, strlen(formatted_string));
+	  //LL_mDelay(100);
+	  //LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
+	  //LL_mDelay(200);
+
+
+	  //NFC_IO_ReadState(&state);
+	  //USART2_PutBuffer((uint8_t *)"NFC alive\r\n", 11);
+	  //LL_mDelay(100);
+
+	  /*if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
+	          USART2_PutBuffer((uint8_t *)"GPO=HIGH\r\n", 10);
+	      else
+	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);
+
+	      LL_mDelay(200);*/
 
     /* USER CODE END WHILE */
 
