@@ -125,10 +125,12 @@ int main(void)
   if (status == NFC_IO_STATUS_SUCCESS)
   {
       USART2_PutBuffer((uint8_t *)"M24SR READY\r\n", 13);
+      LL_mDelay(50);
   }
   else
   {
       USART2_PutBuffer((uint8_t *)"M24SR NOT READY\r\n", 18);
+      LL_mDelay(50);
   }
 
   while (1)
@@ -145,12 +147,12 @@ int main(void)
 	  //USART2_PutBuffer((uint8_t *)"NFC alive\r\n", 11);
 	  //LL_mDelay(100);
 
-	  /*if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
+	  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
 	          USART2_PutBuffer((uint8_t *)"GPO=HIGH\r\n", 10);
 	      else
 	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);
 
-	      LL_mDelay(200);*/
+	      LL_mDelay(100);
 
     /* USER CODE END WHILE */
 

@@ -20,5 +20,7 @@ void     NFC_IO_Delay(uint32_t Delay);
 uint16_t NFC_IO_IsDeviceReady (uint8_t Addr, uint32_t Trials);
 void     NFC_IO_ReadState(uint8_t * pPinState);
 
+uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t *out_ndef_length);
+
 
 #endif /* INC_NFC_IO_H_ */

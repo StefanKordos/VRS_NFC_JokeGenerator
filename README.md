@@ -1,4 +1,4 @@
-#1.1 PREHĽAD PROJEKTU
+## 1.1 PREHĽAD PROJEKTU
 
 Cieľom projektu je vytvoriť  zariadenie založené na mikrokontroléri STM32F303K8,
 ktoré umožní používateľovi získať vtip  prostredníctvom NFC komunikácie s mobilným telefónom alebo nahrať vtip do
@@ -7,7 +7,7 @@ databázy.
 Generovanie vipov bude fungovať nasledovne:
 používateľ pomocou mobilnej aplikácie odošle NFC požiadavku na zariadenie, mikrokontrolér následne načíta náhodný vtip zo SD karty a zapíše odpoveď späť do pamäte NFC tagu, odkiaľ ju aplikácia prečíta a zobrazí na displeji telefónu. Používateľ bude mať tiež možnosť nahrať svoj vlastný vtip do databázy, vtip bude cez NFC odoslaný na zariadenie, mikrokontrolér tento vtip načíta z pamäte NFC tagu a následnho ho uloží do databázy na SD karte.
 
-#1.2 Vlastnosti
+## 1.2 Vlastnosti
 
 Dynamická NFC komunikácia (request → response)
 
@@ -20,7 +20,7 @@ I2C komunikácia s NFC tag modulom (X-NUCLEO-NFC01A1)
 Vlastná mobilná aplikácia pre Android (read/write NFC)
 
 
-#Členovia tímu
+## Členovia tímu
 
 Angelika Loduhová
 
@@ -32,12 +32,12 @@ Janíček Radoslav
 
 #SYSTÉMOVÁ ARCHITEKTÚRA
 
-#2.1 Blokový diagram systému
+## 2.1 Blokový diagram systému
 ![System block diagram](blokova_schema.png)
 
 
 
-#2.2 Tok dát
+## 2.2 Tok dát
 
 Mobilná aplikácia zapíše NFC požiadavku alebo vtip do NFC tagu.
 
@@ -51,9 +51,9 @@ STM32 zapíše odpoveď späť do NFC tagu cez I2C.
 
 Mobilná aplikácia načíta odpoveď a zobrazí text používateľovi.
 
-#HARDVÉROVÁ ŠPECIFIKÁCIA
+## HARDVÉROVÁ ŠPECIFIKÁCIA
 
-3.1 Komponenty
+## 3.1 Komponenty
 
 MCU	STM32F303K8 (Nucleo) - Riadenie systému
 
@@ -61,7 +61,7 @@ NFC Modul	X-NUCLEO-NFC01A1 - I2C + NFC komunikácia
 
 SD karta - Ukladanie databázy vtipov
 
-úloha 1: Čítanie/zápis vtipov zo SD karty (SPI)
+## úloha 1: Čítanie/zápis vtipov zo SD karty (SPI)
 
 Inicializácia SPI a FATFS
 
@@ -71,7 +71,7 @@ Zápis a čítanie vtipu z/do súboru
 
 Priradený člen: Tomáš Major
 
-úloha 2: Čítanie požiadaviek z NFC modulu (I2C)
+## úloha 2: Čítanie požiadaviek z NFC modulu (I2C)
 
 Integrácia knižnice pre NFC modul
 
@@ -83,7 +83,7 @@ Detekcia zápisu na NFC tag cez GPO pin
 
 Priradený člen: Štefan Kordoš
 
-úloha 3: Zápis odpovedí do NFC modulu (I2C)
+## úloha 3: Zápis odpovedí do NFC modulu (I2C)
 
 Spracovanie prichádzajúcej požiadavky
 
@@ -93,7 +93,7 @@ Hlavná logika programu
 
 Priradený člen: Radoslav Janíček
 
-úloha 4: Android aplikácia
+## úloha 4: Android aplikácia
 
 Implementácia NFC komunikácie (write/read)
 
