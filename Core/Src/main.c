@@ -108,10 +108,10 @@ int main(void)
 
 
   //I2C init + GPO polling
-  //M24SR_Init(M24SR_I2C_WRITE, M24SR_GPO_POLLING); COMMENTED OUT FOR TEST
+  M24SR_Init(M24SR_I2C_WRITE, M24SR_GPO_POLLING);
 
   //datasheet p. 24
-  //M24SR_ManageRFGPO(M24SR_I2C_WRITE, 1); COMMENTED OUT FOR TEST
+  M24SR_ManageRFGPO(M24SR_I2C_WRITE, 1);
 
   //uint8_t state;
 
