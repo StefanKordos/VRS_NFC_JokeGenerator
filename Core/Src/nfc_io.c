@@ -86,7 +86,7 @@ uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t
 	return status;
 }
 
-uint8_t Convert_to_NDEF(char *text, uint8_t *ndef)
+uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 {
 	if (text == NULL || ndef == NULL)
 		return 1;
@@ -104,7 +104,13 @@ uint8_t Convert_to_NDEF(char *text, uint8_t *ndef)
 	uint16_t text_len = strlen(text);
 
 	//Status byte 1B, Language code 2B "en", text text_lenB
-	uint8_t payload_length = 1 + 2 + text_len; //NFCForum-TS-RTD_Text_1.0 p.4
+	uint16_t payload_length = 1 + 2 + text_len; //NFCForum-TS-RTD_Text_1.0 p.4
+
+	if (payload_length > 255)
+	{
+		printf("[NDEF ERROR] Payload length %d exceeds SR limit (255)!\r\n", payload_length);
+		return 0;
+	}
 
 	//Length of NDEF record
 	/*
@@ -165,6 +171,6 @@ uint8_t Convert_to_NDEF(char *text, uint8_t *ndef)
 	ndef[8] = 'n';
 
 	memcpy(&ndef[9], text, text_len); //copy length of bytes without \0
-	return 0;
+	return 2 + ndef_record_length; //2-byte "Length Header"
 }
 

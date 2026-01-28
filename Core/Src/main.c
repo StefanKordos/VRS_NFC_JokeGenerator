@@ -108,12 +108,30 @@ int main(void)
 
 
   //I2C init + GPO polling
-  M24SR_Init(M24SR_I2C_WRITE, M24SR_GPO_POLLING);
+  //M24SR_Init(M24SR_I2C_WRITE, M24SR_GPO_POLLING); COMMENTED OUT FOR TEST
 
   //datasheet p. 24
-  M24SR_ManageRFGPO(M24SR_I2C_WRITE, 1);
+  //M24SR_ManageRFGPO(M24SR_I2C_WRITE, 1); COMMENTED OUT FOR TEST
 
   //uint8_t state;
+
+  char myStaticJoke[] = "This is a static test joke";
+  uint8_t ndefBuffer[300];
+  uint16_t ndefLen;
+
+  ndefLen = Convert_to_NDEF(myStaticJoke, ndefBuffer);
+
+    if (ndefLen > 0) {
+        USART2_PutBuffer((uint8_t*)"NDEF Conversion Success!\r\n", 26);
+
+        for(int i=0; i<ndefLen; i++) {
+            sprintf(formatted_string, "%02X ", ndefBuffer[i]);
+            USART2_PutBuffer((uint8_t*)formatted_string, strlen(formatted_string));
+        }
+        USART2_PutBuffer((uint8_t*)"\r\n", 2);
+    } else {
+        USART2_PutBuffer((uint8_t*)"NDEF Failed (Too long?)\r\n", 25);
+    }
 
   /* USER CODE END 2 */
 

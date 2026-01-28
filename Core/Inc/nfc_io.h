@@ -22,7 +22,7 @@ void     NFC_IO_ReadState(uint8_t * pPinState);
 
 uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t *out_ndef_length);
 
-uint8_t Convert_to_NDEF(char *text, uint8_t *ndef);
+uint16_t Convert_to_NDEF(char *text, uint8_t *ndef);
 uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length);
 
 #endif /* INC_NFC_IO_H_ */
