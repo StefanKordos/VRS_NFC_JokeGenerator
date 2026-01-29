@@ -170,28 +170,6 @@ uint16_t NFC_IO_ReadMultiple(uint8_t DevAddr, uint8_t *pData, uint16_t Size)
     return NFC_IO_STATUS_SUCCESS;
 }
 
-/*
-uint16_t NFC_IO_ReadMultiple(uint8_t Addr, uint8_t *pBuffer, uint16_t Length)
-{
-    //uint8_t i2c_addr = Addr >> 1; // 8-bit adress shifted right
-	HAL_StatusTypeDef status;
-
-	status = HAL_I2C_IsDeviceReady(&hi2c1, Addr << 1, 3, NFC_I2C_TIMEOUT);
-	if (status != HAL_OK)
-	{
-	    return NFC_IO_ERROR_TIMEOUT;
-	}
-
-	// Perform the I2C read operation
-	status = HAL_I2C_Master_Receive(&hi2c1, Addr << 1, pBuffer, Length, NFC_I2C_TIMEOUT);
-	if (status != HAL_OK)
-	{
-	    return NFC_IO_ERROR_TIMEOUT;
-	}
-
-	return NFC_IO_STATUS_SUCCESS;
-}*/
-
 
 
 uint16_t NFC_IO_WriteMultiple(uint8_t Addr, uint8_t *pBuffer, uint16_t Length)
@@ -229,69 +207,6 @@ uint16_t NFC_IO_WriteMultiple(uint8_t Addr, uint8_t *pBuffer, uint16_t Length)
 
 	return NFC_IO_STATUS_SUCCESS;
 }
-/*
-uint16_t NFC_IO_WriteMultiple(uint8_t DevAddr, uint8_t *pData, uint16_t Size)
-{
-    if (HAL_I2C_Master_Transmit(
-            &hi2c1,
-            DevAddr << 1,   // 7-bit address shifted
-            pData,
-            Size,
-			NFC_I2C_TIMEOUT
-        ) != HAL_OK)
-    {
-    	char msg[64];
-    	        sprintf(msg,
-    	        "I2C TX FAIL: Dev=0x%02X Err=0x%lX State=%d\r\n",
-    			DevAddr,
-    	        hi2c1.ErrorCode,
-    	        hi2c1.State);
-    	        USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-    	        LL_mDelay(150);
-        return NFC_IO_STATUS_ERROR;
-
-
-
-    }
-
-    return NFC_IO_STATUS_SUCCESS;
-}*/
-
-/*
-uint16_t NFC_IO_WriteMultiple(uint8_t DeviceAddr, uint8_t *pData, uint16_t Size)
-{
-    uint32_t start = HAL_GetTick();
-    HAL_StatusTypeDef ret;
-
-    // 1. Poll until M24SR is ready (ACKs address)
-    while (HAL_I2C_IsDeviceReady(&hi2c1,
-                                 0xAC,
-                                 1,
-                                 5) != HAL_OK)
-    {
-        if ((HAL_GetTick() - start) > 200)   // ST uses ~200 ms
-        {
-            return NFC_IO_STATUS_TIMEOUT;
-        }
-    }
-
-    // 2. Transmit full I-Block in one transaction
-    ret = HAL_I2C_Master_Transmit(&hi2c1,
-    		0xAC,
-                                  pData,
-                                  Size,
-                                  100);   // NOT 1 ms
-
-    if (ret != HAL_OK)
-    {
-        // Important: recover bus
-        HAL_I2C_DeInit(&hi2c1);
-        HAL_I2C_Init(&hi2c1);
-        return NFC_IO_STATUS_TIMEOUT;
-    }
-
-    return NFC_IO_STATUS_SUCCESS;
-}*/
 
 
 
