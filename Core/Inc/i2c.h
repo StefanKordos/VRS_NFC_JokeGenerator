@@ -35,7 +35,11 @@ extern "C" {
 extern I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN Private defines */
-#define NFC_I2C_TIMEOUT 100
+#define NFC_I2C_TIMEOUT 1000
+#define NFC_IO_STATUS_TIMEOUT    -1
+
+#define NFC_IO_STATUS_SUCCESS 0
+#define NFC_IO_STATUS_ERROR   1
 
 /* USER CODE END Private defines */
 

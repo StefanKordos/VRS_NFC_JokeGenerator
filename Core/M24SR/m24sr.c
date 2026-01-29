@@ -21,6 +21,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "string.h"
 #include "m24sr.h"
+#include "string.h"
+#include "stdio.h"
+#include "usart.h"
 /** @addtogroup BSP
   * @{
   */
@@ -567,6 +570,11 @@ uint16_t M24SR_GetSession (uint16_t DeviceAddr)
 
   if (NFC_IO_WriteMultiple(DeviceAddr, &Buffer, 0x01 ) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	    		sprintf(msg,
+	  	    		"w fail\r\n");
+	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
   /* Insure no access will be done just after open session */
@@ -574,6 +582,11 @@ uint16_t M24SR_GetSession (uint16_t DeviceAddr)
   /* GPO can not be use with GetSession command */
   if (NFC_IO_IsDeviceReady(DeviceAddr, NFC_IO_TRIALS) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"rdy fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
 
@@ -672,16 +685,31 @@ uint16_t M24SR_SelectApplication (uint16_t DeviceAddr)
   /* send the request */
   if (NFC_IO_WriteMultiple(DeviceAddr, pBuffer, NbByte) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"w fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		//LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
   status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"rdy fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return status;
   }
   /* read the response */
-  if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS)
+  if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS) //maybe put 0xAD in here instead?
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"r fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
   status = M24SR_IsCorrectCRC16Residue (pBuffer,NbByteToRead);
@@ -723,16 +751,31 @@ uint16_t M24SR_SelectCCfile (uint16_t DeviceAddr)
   /* send the request */
   if (NFC_IO_WriteMultiple(DeviceAddr, pBuffer, NbByte) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"w fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
   status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	  	    		sprintf(msg,
+	  	  	  	    		"rdy fail\r\n");
+	  	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	  	    		LL_mDelay(20);
     return status;
   }
   /* read the response */
   if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	  	    		sprintf(msg,
+	  	  	  	    		"r fail\r\n");
+	  	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
 
@@ -1529,6 +1572,7 @@ static uint16_t M24SR_IsAnswerReady (uint16_t DeviceAddr)
   uint32_t retry = 0xFFFFF;
   uint8_t stable = 0;
   uint8_t PinState;
+
 
   switch (uSynchroMode)
   {

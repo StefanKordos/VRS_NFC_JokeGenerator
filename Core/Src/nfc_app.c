@@ -40,8 +40,8 @@ NFC_Request_t NFC_ParseRequest(char *rxText)
 void NFC_ProcessRequest(char *rxText)
 {
     NFC_Request_t request;
-    char responseText[256];
-    uint8_t ndefBuffer[300];
+    char responseText[253]; //joke text or response with \0
+    uint8_t ndefBuffer[300]; //octets
     uint16_t ndefLength;
 
     request = NFC_ParseRequest(rxText);
@@ -54,8 +54,16 @@ void NFC_ProcessRequest(char *rxText)
 			 * - read random joke from SD card
 			 * - store into responseText
 			 */
-			strcpy(responseText, "GET_JOKE request received");
-			break;
+
+        	//joke text = 255 - (status byte + language code) SR -
+        	//PAYLOAD fields of size ranging between 0 to 255 octets. NFCForum-TS-NDEF_1.0 s.3.2.4
+        	//TEST
+        	/*if (strlen(responseText) > 252)
+        	{
+				printf("Joke is too long");
+				return;
+        	}*/
+        	break;
 
         case NFC_REQ_ADD_JOKE:
         	/*
@@ -64,7 +72,11 @@ void NFC_ProcessRequest(char *rxText)
 			 * - store joke into SD card
 			 */
 			strcpy(responseText, "ADD_JOKE request received");
+			/*if joke successfully added
+			 * return joke added to database
+			 */
 			break;
+
 
         default:
             /*
@@ -76,10 +88,11 @@ void NFC_ProcessRequest(char *rxText)
     }
     /*
      * Convert response text to NDEF and write to NFC tag via I2C
-     * +13 bytes = NDEF Text Record overhead (header + type + language code)
      */
-	convert_to_NDEF(responseText, ndefBuffer);
-	ndefLength = strlen(responseText) + 13;
-
-	Write_Joke_TO_NFC(ndefBuffer, ndefLength);
+    ndefLength = Convert_to_NDEF(responseText, ndefBuffer);
+    if (ndefLength > 0){
+        Write_Joke_TO_NFC(ndefBuffer, ndefLength);
+    } else {
+        printf("Error: NDEF Conversion failed.\r\n");
+    }
 }
