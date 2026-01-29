@@ -174,3 +174,35 @@ uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 	return 2 + ndef_record_length; //2-byte "Length Header"
 }
 
+uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length)
+{
+	uint16_t status;
+
+	//Device select 0xAC: to send a request to the M24SR64-Y m24sr64-Y s.7.9
+	M24SR_KillSession(M24SR_I2C_WRITE); //if there is an active session -> kill
+
+	status = M24SR_SelectApplication(M24SR_I2C_WRITE); //select NDEF tag application m24sr64-y s.8.9
+	if (status != M24SR_ACTION_COMPLETED)
+		return status;
+
+	status = M24SR_SelectNDEFfile(M24SR_I2C_WRITE, 0x0001); //select NDEF file m24sr64-y s. 3.1.1
+	if (status != M24SR_ACTION_COMPLETED)
+		return status;
+
+	status = M24SR_UpdateBinary(
+				M24SR_I2C_WRITE,
+				0x0000, //beginning of file
+				length, // total length (NLEN + record)
+				ndef_message
+			);
+
+	if (status != M24SR_ACTION_COMPLETED)
+		return status;
+
+	//end of communication
+	M24SR_Deselect(M24SR_I2C_WRITE);
+	return status;
+}
+
+
+

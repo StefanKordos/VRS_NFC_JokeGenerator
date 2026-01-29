@@ -58,11 +58,13 @@ void NFC_ProcessRequest(char *rxText)
         	//joke text = 255 - (status byte + language code) SR -
         	//PAYLOAD fields of size ranging between 0 to 255 octets. NFCForum-TS-NDEF_1.0 s.3.2.4
         	//TEST
-        	/*if (strlen(responseText) > 252)
+        	const char *testJoke = "This is a static test joke";
+        	if (strlen(testJoke) > 252)
         	{
 				printf("Joke is too long");
 				return;
-        	}*/
+        	}
+        	strcpy(responseText, testJoke);
         	break;
 
         case NFC_REQ_ADD_JOKE:
@@ -90,7 +92,7 @@ void NFC_ProcessRequest(char *rxText)
      */
     ndefLength = Convert_to_NDEF(responseText, ndefBuffer);
     if (ndefLength > 0){
-        Write_Joke_TO_NFC(ndefBuffer, ndefLength);
+    	Write_Joke_to_NFC(ndefBuffer, ndefLength);
     } else {
         printf("Error: NDEF Conversion failed.\r\n");
     }
