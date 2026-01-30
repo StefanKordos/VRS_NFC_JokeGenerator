@@ -11,6 +11,7 @@
 #include "../M24SR/m24sr.h"
 #include "stm32f3xx_ll_i2c.h"
 #include "stm32f3xx_ll_gpio.h"
+#include <stdint.h>
 
 //I2C slave address + R or W bit
 //#define M24SR_I2C_WRITE 0xAC //datasheet p. 60 section 7.1
@@ -41,7 +42,7 @@
 #define M24SR_NDEF_FILE                             0x0001
 
 // M24SR status codes
-#define M24SR_OK                                    0x9000
+//#define M24SR_OK                                    0x9000
 #define M24SR_ERR_FILE_OVERFLOW_LE                  0x6280
 #define M24SR_ERR_END_OF_FILE_REACHED               0x6282
 #define M24SR_ERR_PASSWORD_REQUIRED                 0x6300
@@ -89,6 +90,46 @@ uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length);
 
 
 unsigned short M24SR_ReadTag(unsigned char* buf);
+
+//--------------alternative driver-------------------
+/* M24SR I2C address (7-bit) */
+#define M24SR_ADDR              0x56
+
+/* Status codes */
+typedef enum {
+    M24SR_OK = 0,
+    M24SR_ERROR,
+    M24SR_TIMEOUT,
+    M24SR_NACK
+} M24SR_Status;
+
+/* Command status bytes */
+#define M24SR_STATUS_OK         0x9000
+#define M24SR_STATUS_EOF        0x6282
+
+/* File IDs */
+#define M24SR_CC_FILE_ID        0xE103
+#define M24SR_NDEF_FILE_ID      0x0001
+#define M24SR_SYS_FILE_ID       0xE101
+
+M24SR_Status M24SR_KillRFSession(void);
+
+M24SR_Status M24SR_Deselect_alt(void);
+
+M24SR_Status M24SR_SelectApplication_alt(void);
+
+M24SR_Status M24SR_SelectCCFile_alt(void);
+
+M24SR_Status M24SR_SelectNDEFFile_alt(void);
+
+M24SR_Status M24SR_ReadBinary_alt(uint16_t offset, uint8_t length, uint8_t *pData);
+
+M24SR_Status M24SR_ReadNDEFLength_alt(uint16_t *pLength);
+
+M24SR_Status M24SR_ReadNDEF_alt(uint8_t *pData, uint16_t maxLen, uint16_t *pActualLen);
+
+
+
 
 
 
