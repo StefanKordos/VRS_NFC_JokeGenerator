@@ -19,6 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "i2c.h"
+#include "string.h"
+#include "stdio.h"
 
 /* USER CODE BEGIN 0 */
 #include "../M24SR/m24sr.h"
@@ -39,8 +41,8 @@ void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x2000090E;
-  hi2c1.Init.OwnAddress1 = 2;
+  hi2c1.Init.Timing = 0x00201D2B;//0x2000090E; //0x00201D2B
+  hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c1.Init.OwnAddress2 = 0;
@@ -88,7 +90,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     */
     GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL; //TODO try pull up?
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -134,44 +136,61 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 
 /* USER CODE BEGIN 1 */
 
-uint16_t NFC_IO_ReadMultiple(uint8_t Addr, uint8_t *pBuffer, uint16_t Length)
+uint16_t NFC_IO_ReadMultiple(uint8_t DevAddr, uint8_t *pData, uint16_t Size)
 {
-    //uint8_t i2c_addr = Addr >> 1; // 8-bit adress shifted right
-    uint8_t i2c_addr = Addr;
 
-    //check if ready
-    if (HAL_I2C_IsDeviceReady(&hi2c1, i2c_addr, 3, NFC_I2C_TIMEOUT) != HAL_OK)
-    {
+    //try retry version:
+	HAL_StatusTypeDef status;
+
+    uint8_t retry;
+    for (retry = 0; retry < 5; retry++) {
+    	    status = HAL_I2C_Master_Receive(&hi2c1, ((M24SR_ADDR << 1) | 0x01), pData, 256, 200);
+    	    if (status == HAL_OK) break;
+    	    HAL_Delay(5);
+    }
+    if (status != HAL_OK) {
+    	char msg[64];
+    	sprintf(msg,
+    	"I2C RX FAIL: Dev=0x%02X Err=0x%lX State=%d\r\n",
+		((M24SR_ADDR << 1) | 0x01),
+    	hi2c1.ErrorCode,
+    	hi2c1.State);
+    	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+    	LL_mDelay(10);
         return NFC_IO_ERROR_TIMEOUT;
     }
 
-    // perform read
-    if (HAL_I2C_Master_Receive(&hi2c1, i2c_addr, pBuffer, Length, NFC_I2C_TIMEOUT) != HAL_OK)
-    {
-        return NFC_IO_ERROR_TIMEOUT;
-    }
+
 
     return NFC_IO_STATUS_SUCCESS;
 }
 
+
+
 uint16_t NFC_IO_WriteMultiple(uint8_t Addr, uint8_t *pBuffer, uint16_t Length)
 {
-    //uint8_t i2c_addr = Addr >> 1; // 8-bit adress shifted right
-	uint8_t i2c_addr = Addr;
+	HAL_StatusTypeDef status;
 
-	//check if device ready
-    if (HAL_I2C_IsDeviceReady(&hi2c1, i2c_addr, 3, NFC_I2C_TIMEOUT) != HAL_OK)
-    {
-        return NFC_IO_ERROR_TIMEOUT;
-    }
+	//try retry version:
+	uint8_t retry;
+	for (retry = 0; retry < 5; retry++) {
+	        status = HAL_I2C_Master_Transmit(&hi2c1, ((M24SR_ADDR << 1) | 0x00), pBuffer, Length, 200);
+	        if (status == HAL_OK) break;
+	        HAL_Delay(5);
+	}
+	if (status != HAL_OK) {
+		char msg[64];
+		sprintf(msg,
+		"I2C TX FAIL: Dev=0x%02X Err=0x%lX State=%d\r\n",
+		((M24SR_ADDR << 1) | 0x00),
+		hi2c1.ErrorCode,
+		hi2c1.State);
+		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+		LL_mDelay(10);
+	    return NFC_IO_ERROR_TIMEOUT;
+	}
 
-    //perform write
-    if (HAL_I2C_Master_Transmit(&hi2c1, i2c_addr, pBuffer, Length, NFC_I2C_TIMEOUT) != HAL_OK)
-    {
-        return NFC_IO_ERROR_TIMEOUT;
-    }
-
-    return NFC_IO_STATUS_SUCCESS;
+	return NFC_IO_STATUS_SUCCESS;
 }
 
 

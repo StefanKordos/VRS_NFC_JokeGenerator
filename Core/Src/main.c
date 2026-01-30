@@ -56,7 +56,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-// for temperature reading
+static uint8_t ndefBuffer[256];
+static uint8_t uidBuffer[7];
 
 
 /* USER CODE END PV */
@@ -69,6 +70,26 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void PrintHex(const uint8_t *data, uint16_t len)
+{
+    char buf[8];
+
+    for (uint16_t i = 0; i < len; i++)
+    {
+        sprintf(buf, "%02X ", data[i]);
+        USART2_PutBuffer((uint8_t *)buf, strlen(buf));
+
+        if ((i + 1) % 16 == 0)
+        {
+            USART2_PutBuffer((uint8_t *)"\r\n", 2);
+        }
+    }
+
+    if (len % 16 != 0)
+    {
+        USART2_PutBuffer((uint8_t *)"\r\n", 2);
+    }
+}
 
 /* USER CODE END 0 */
 
@@ -105,15 +126,23 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   char formatted_string[100];
+  char msg[128];
+  uint16_t status = 0;
 
 
-  //I2C init + GPO polling
-  M24SR_Init(M24SR_I2C_WRITE, M24SR_GPO_POLLING);
+  M24SR_Init(M24SR_I2C_READ, M24SR_GPO_POLLING); //M24SR_WAITINGTIME_POLLING
+
+
+  status = M24SR_KillSession(M24SR_I2C_READ);
+  sprintf(msg, "M24SR found. Kill session status: 0x%04X\r\n", status);
+  USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+  LL_mDelay(50);
+
+
 
   //datasheet p. 24
-  M24SR_ManageRFGPO(M24SR_I2C_WRITE, 1);
+  //M24SR_ManageRFGPO(M24SR_I2C_READ, 1);
 
-  //uint8_t state;
 
   /*----NDEF format test----*/
   /*char myStaticJoke[] = "This is a static test joke";
@@ -144,18 +173,6 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  uint16_t status = NFC_IO_IsDeviceReady(M24SR_I2C_READ, 3);
-
-  if (status == NFC_IO_STATUS_SUCCESS)
-  {
-      USART2_PutBuffer((uint8_t *)"M24SR READY\r\n", 13);
-      LL_mDelay(50);
-  }
-  else
-  {
-      USART2_PutBuffer((uint8_t *)"M24SR NOT READY\r\n", 18);
-      LL_mDelay(50);
-  }
 
   while (1)
   {
@@ -166,17 +183,55 @@ int main(void)
 	  //LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_3);
 	  //LL_mDelay(200);
 
+	  //i2c read test output send
+	  /*for (uint16_t i = 0; i < ndef_len; i++)
+	  {
+	      char hex[5];
+	      sprintf(hex, "%02X ", ndef_raw[i]);
+	      USART2_PutBuffer((uint8_t *)hex, strlen(hex));
+	  }
+	  USART2_PutBuffer((uint8_t *)"\r\n", 2);
+
+	  LL_mDelay(5000);*/
 
 	  //NFC_IO_ReadState(&state);
 	  //USART2_PutBuffer((uint8_t *)"NFC alive\r\n", 11);
 	  //LL_mDelay(100);
 
-	  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
+	  /*if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
 	          USART2_PutBuffer((uint8_t *)"GPO=HIGH\r\n", 10);
 	      else
 	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);
 
-	      LL_mDelay(100);
+	      LL_mDelay(100);*/
+
+
+	  uint8_t ndef_raw[256];
+	  uint16_t ndef_len = 0;
+
+	    //i2c read test
+	    LL_mDelay(100);
+	    status = Read_NDEF_From_NFC(ndef_raw, sizeof(ndef_raw), &ndef_len);
+	    LL_mDelay(100);
+
+
+	    //char msg[64];
+	    sprintf(msg, "Read status: 0x%04X, len: %u\r\n", status, ndef_len);
+	    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	    LL_mDelay(20);
+	    USART2_PutBuffer("\r\n", 2);
+	    LL_mDelay(20);
+	    PrintHex(ndef_raw, ndef_len);
+	    LL_mDelay(20);
+	    USART2_PutBuffer("\r\n", 2);
+	    LL_mDelay(20);
+	    uint8_t langLen = ndef_raw[4] & 0x3F;
+	    USART2_PutBuffer(&ndef_raw[5 + langLen], ndef_raw[2] - 1 - langLen);
+
+	    LL_mDelay(3000000);
+
+
+
 
     /* USER CODE END WHILE */
 
@@ -191,8 +246,8 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-  LL_FLASH_SetLatency(LL_FLASH_LATENCY_0);
-  while(LL_FLASH_GetLatency()!= LL_FLASH_LATENCY_0)
+  LL_FLASH_SetLatency(LL_FLASH_LATENCY_0); //0
+  while(LL_FLASH_GetLatency()!= LL_FLASH_LATENCY_0) //0
   {
   }
   LL_RCC_HSI_Enable();
@@ -204,16 +259,16 @@ void SystemClock_Config(void)
   }
   LL_RCC_HSI_SetCalibTrimming(16);
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
-  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
+  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1); //1
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
-  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSI);
+  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSI); //HSI
 
    /* Wait till System clock is ready */
-  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI)
+  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI) //HSI
   {
 
   }
-  LL_SetSystemCoreClock(8000000);
+  LL_SetSystemCoreClock(8000000);  //8000000
 
    /* Update the time base */
   if (HAL_InitTick (TICK_INT_PRIORITY) != HAL_OK)

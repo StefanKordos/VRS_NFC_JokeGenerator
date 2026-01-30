@@ -21,6 +21,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "string.h"
 #include "m24sr.h"
+#include "string.h"
+#include "stdio.h"
+#include "usart.h"
 /** @addtogroup BSP
   * @{
   */
@@ -226,6 +229,8 @@ uint8_t uSynchroMode = M24SR_WAITINGTIME_POLLING;
 uint8_t uGpoMode     = M24SR_GPO_POLLING;
 volatile uint8_t    GPO_Low = 0;
 
+static uint8_t BlockNumber = 0x01;
+
 /**
   * @}
   */
@@ -362,7 +367,7 @@ static uint16_t M24SR_IsCorrectCRC16Residue (uint8_t *DataIn,uint8_t Length)
 static void M24SR_BuildIBlockCommand ( uint16_t CommandStructure, C_APDU Command, uint16_t *NbByte , uint8_t *pCommand)
 {
   uint16_t  uCRC16;
-  static uint8_t BlockNumber = 0x01;
+  //static uint8_t BlockNumber = 0x01;
 
   (*NbByte) = 0;
 
@@ -567,6 +572,11 @@ uint16_t M24SR_GetSession (uint16_t DeviceAddr)
 
   if (NFC_IO_WriteMultiple(DeviceAddr, &Buffer, 0x01 ) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	    		sprintf(msg,
+	  	    		"w fail\r\n");
+	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
   /* Insure no access will be done just after open session */
@@ -574,6 +584,11 @@ uint16_t M24SR_GetSession (uint16_t DeviceAddr)
   /* GPO can not be use with GetSession command */
   if (NFC_IO_IsDeviceReady(DeviceAddr, NFC_IO_TRIALS) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"rdy fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
 
@@ -598,10 +613,16 @@ uint16_t M24SR_KillSession (uint16_t DeviceAddr)
   /* Insure no access will be done just after open session */
   /* The only way here is to poll I2C to know when M24SR is ready */
   /* GPO can not be use with KillSession command */
-  if (NFC_IO_IsDeviceReady(DeviceAddr, NFC_IO_TRIALS) != NFC_IO_STATUS_SUCCESS)
+  /*if (NFC_IO_IsDeviceReady(DeviceAddr, NFC_IO_TRIALS) != NFC_IO_STATUS_SUCCESS)
   {
     return M24SR_ERROR_TIMEOUT;
-  }
+  }*/
+
+  //simple delay
+  HAL_Delay(5);
+
+  BlockNumber = TOGGLE ( BlockNumber );
+
   return M24SR_ACTION_COMPLETED;
 }
 
@@ -622,16 +643,19 @@ uint16_t M24SR_Deselect (uint16_t DeviceAddr)
   {
     return M24SR_ERROR_TIMEOUT;
   }
-  status = M24SR_IsAnswerReady (DeviceAddr);
+  /*status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
     return status;
-  }
+  }*/
+  //simple delay:
+  HAL_Delay(1);
+
   /* flush the M24SR buffer */
-  if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  M24SR_DESELECTREQUEST_NBBYTE) != NFC_IO_STATUS_SUCCESS)
+  /*if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  M24SR_DESELECTREQUEST_NBBYTE) != NFC_IO_STATUS_SUCCESS)
   {
     return M24SR_ERROR_TIMEOUT;
-  }
+  }*/
 
   return M24SR_ACTION_COMPLETED;
 }
@@ -672,16 +696,37 @@ uint16_t M24SR_SelectApplication (uint16_t DeviceAddr)
   /* send the request */
   if (NFC_IO_WriteMultiple(DeviceAddr, pBuffer, NbByte) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"w fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		//LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
+
+  /*
   status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"rdy fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return status;
-  }
+  }*/
+
+  //try just a delay:
+  HAL_Delay(1);
+
   /* read the response */
-  if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS)
+  if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS) //maybe put 0xAD in here instead?
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"r fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
   status = M24SR_IsCorrectCRC16Residue (pBuffer,NbByteToRead);
@@ -723,16 +768,34 @@ uint16_t M24SR_SelectCCfile (uint16_t DeviceAddr)
   /* send the request */
   if (NFC_IO_WriteMultiple(DeviceAddr, pBuffer, NbByte) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	    		sprintf(msg,
+	  	  	    		"w fail\r\n");
+	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
-  status = M24SR_IsAnswerReady (DeviceAddr);
+  /*status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	  	    		sprintf(msg,
+	  	  	  	    		"rdy fail\r\n");
+	  	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	  	    		LL_mDelay(20);
     return status;
-  }
+  }*/
+
+  //simple delay:
+  HAL_Delay(1);
   /* read the response */
   if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS)
   {
+	  char msg[64];
+	  	  	  	    		sprintf(msg,
+	  	  	  	    		"r fail\r\n");
+	  	  	  	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	  	  	  	    		LL_mDelay(20);
     return M24SR_ERROR_TIMEOUT;
   }
 
@@ -827,11 +890,14 @@ uint16_t M24SR_SelectNDEFfile (uint16_t DeviceAddr, uint16_t NDEFfileId)
   {
     return M24SR_ERROR_TIMEOUT;
   }
-  status = M24SR_IsAnswerReady (DeviceAddr);
+  /*status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
     return status;
-  }
+  }*/
+
+  //simple delay:
+  HAL_Delay(1);
   /* read the response */
   if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead) != NFC_IO_STATUS_SUCCESS)
   {
@@ -874,11 +940,15 @@ uint16_t M24SR_ReadBinary (uint16_t DeviceAddr, uint16_t Offset ,uint8_t NbByteT
   {
     return M24SR_ERROR_TIMEOUT;
   }
-  status = M24SR_IsAnswerReady (DeviceAddr);
+  /*status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
     return status;
-  }
+  }*/
+
+  //simple delay:
+  HAL_Delay(1);
+
   status = NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  NbByteToRead + M24SR_STATUSRESPONSE_NBBYTE);
   if (status != NFC_IO_STATUS_SUCCESS)
   {
@@ -1529,6 +1599,7 @@ static uint16_t M24SR_IsAnswerReady (uint16_t DeviceAddr)
   uint32_t retry = 0xFFFFF;
   uint8_t stable = 0;
   uint8_t PinState;
+
 
   switch (uSynchroMode)
   {

@@ -38,8 +38,9 @@ extern "C" {
 
 void MX_USART2_UART_Init(void);
 
-/* USER CODE BEGIN Prototypes */
 
+/* USER CODE BEGIN Prototypes */
+//void USART2_PutBuffer(uint8_t *buffer, uint8_t length)
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

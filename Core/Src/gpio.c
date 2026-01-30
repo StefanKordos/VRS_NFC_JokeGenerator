@@ -22,6 +22,8 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN 0 */
+LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+static uint8_t GpoIrqEnabled = 0;
 
 /* USER CODE END 0 */
 
@@ -46,7 +48,15 @@ void MX_GPIO_Init(void)
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO; //TODO try pullup
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP; //TODO try pullup
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_7;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
@@ -55,15 +65,40 @@ void MX_GPIO_Init(void)
 void NFC_IO_Init(uint8_t GpoIrqEnable)
 {
 
-    //already init in .ioc
-	//maybe add EXTI interrupt here if needed
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GpoIrqEnable ? GPIO_MODE_IT_RISING : LL_GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    if (GpoIrqEnable)
+    {
+        NVIC_SetPriority(EXTI9_5_IRQn, 0);
+        NVIC_EnableIRQ(EXTI9_5_IRQn);
+    }
+
+    GPIO_InitStruct.Pin = LL_GPIO_PIN_7;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_7);
+
+    GpoIrqEnabled = GpoIrqEnable;
 }
 
 void NFC_IO_DeInit(void)
 {
     LL_GPIO_DeInit(GPIOA);
+    LL_GPIO_DeInit(GPIOA);
 
-    //add NVIC disable if using interrupt
+    if (GpoIrqEnabled)
+    {
+        NVIC_DisableIRQ(EXTI9_5_IRQn);
+    }
+
+    GpoIrqEnabled = 0;
 }
 
 

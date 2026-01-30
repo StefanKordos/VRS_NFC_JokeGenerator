@@ -6,25 +6,45 @@
  */
 
 #include "i2c.h"
+#include "usart.h"
 #include "../M24SR/m24sr.h"
-//#include "nfc_io.h"
+#include "nfc_io.h"
+#include "stdlib.h"
+#include "string.h"
+#include "stdio.h"
+#include "stm32f3xx_hal.h"
+
+
+
+uint8_t DefaultPassword[16] = DEFAULT_PASSWORD_INIT;
+
+#define M24SR_DEVICE_ADDR_W     ((M24SR_ADDR << 1) | 0x00)
+#define M24SR_DEVICE_ADDR_R     ((M24SR_ADDR << 1) | 0x01)
+
+
 
 uint16_t NFC_IO_IsDeviceReady(uint8_t Addr, uint32_t Trials)
 {
-    //uint8_t i2c_addr = Addr >> 1;
-	uint8_t i2c_addr = Addr;
-
-	uint32_t start = HAL_GetTick();
-	uint32_t timeout_ms = 1500;
-
-	//use polling -> HAL_I2C_IsDeviceReady() locks? during RF
-	while ((HAL_GetTick() - start) < timeout_ms)
-	{
-	    if (HAL_I2C_IsDeviceReady(&hi2c1, i2c_addr, 1, 100) == HAL_OK)
-	        return NFC_IO_STATUS_SUCCESS;
+	//simpler version
+	for (uint32_t i = 0; i < Trials; i++)
+	    {
+	        if (HAL_I2C_IsDeviceReady(&hi2c1, Addr, 500, 3000) == HAL_OK)
+	        {
+	            return NFC_IO_STATUS_SUCCESS;
+	        }
 	}
 
 	return NFC_IO_ERROR_TIMEOUT;
+}
+
+
+void NFC_IO_RfDisable(uint8_t PinState){
+    if (PinState){
+        LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_7);
+    }
+    else{
+        LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_7);
+    }
 }
 
 void NFC_IO_Delay(uint32_t Delay)
@@ -38,51 +58,87 @@ void NFC_IO_ReadState(uint8_t *pPinState)
     *pPinState = (uint8_t)LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6); //our GPO polling pin
 }
 
+
 uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t *out_ndef_length)
 {
 	uint16_t status;
+	uint16_t step = 0;
+	char msg[64];
 	uint8_t length_bytes[2]; //datasheet p.23
 
 	if (!ndef_buffer || !out_ndef_length)
-	        return M24SR_ERROR_PARAMETER;
+	    return M24SR_ERROR_PARAMETER;
 
 	*out_ndef_length = 0;
 
+	//opens session
+	status = M24SR_KillSession(M24SR_DEVICE_ADDR_W);
+	HAL_Delay(10);
+	uint8_t counter = 1;
+	sprintf(msg, "Kill session status = 0x%04X\r\n", status); //to check if session open
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);
 
-	M24SR_KillSession(M24SR_I2C_READ); //if there is an active session -> kill
 
 	status = M24SR_SelectApplication(M24SR_I2C_READ); //application select
-	if (status != M24SR_ACTION_COMPLETED)
-	    return status;
+	//HAL_Delay(10);
+	counter = 2;
+	sprintf(msg, "Select Aplication status = 0x%04X\r\n", status);
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);
 
-	status = M24SR_SelectNDEFfile(M24SR_I2C_READ, 0x0001); //we went to read ndef file
-	if (status != M24SR_ACTION_COMPLETED)
-	    return status;
 
-	//first we read the length bytes ->message lenght
-	status = M24SR_ReadBinary(M24SR_I2C_READ, 0x00, 0x02, length_bytes);
-	if (status != M24SR_ACTION_COMPLETED)
-	    return status;
+	status = M24SR_SelectCCfile(M24SR_I2C_READ);
+	counter = 3;
+	sprintf(msg, "Select CCfile status = 0x%04X\r\n", status);
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);
 
-	uint16_t ndef_length =
-	    ((uint16_t)length_bytes[0] << 8) |
-	     (uint16_t)length_bytes[1];
 
-	//check if lenght is valid
-	if (ndef_length == 0 || ndef_length > buffer_size)
-	    return M24SR_ERROR_PARAMETER;
+/*
+	uint8_t cc[15];   //CC file is typc. 15 bytes
+	status = M24SR_ReadBinary(M24SR_I2C_READ, 0x0000, sizeof(cc), cc);
+	counter = 4;
+	sprintf(msg, "stat = 0x%04X\r\n", status);
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);*/
 
-	//read the message
-	status = M24SR_ReadBinary(M24SR_I2C_READ, 0x02, ndef_length, ndef_buffer);
 
-	//sucess check
-	if (status != M24SR_ACTION_COMPLETED)
-	    return status;
 
-	*out_ndef_length = ndef_length; //output lenght
+	status = M24SR_SelectNDEFfile(M24SR_I2C_READ, 0x0001);
+	counter = 5;
+	sprintf(msg, "Select NDEF file status = 0x%04X\r\n", status);
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);
 
-	//end session
-	M24SR_Deselect(M24SR_I2C_READ);
+	//------selecting message done----------------------------
+
+	uint8_t nlenBuf[2];
+	status =  M24SR_ReadBinary(M24SR_I2C_READ, 0x0000, 2, nlenBuf);
+	uint16_t nlen = (nlenBuf[0] << 8) | nlenBuf[1];
+	*out_ndef_length = nlen;
+	sprintf(msg, "Read lenght status = 0x%04X\r\n", status);
+    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+    LL_mDelay(20);
+	counter = 7;
+
+
+	//read payload
+	uint8_t ndef[256];  // must be >= nlen
+	status = M24SR_ReadBinary(M24SR_I2C_READ, 0x0002, nlen, ndef_buffer);
+	counter = 8;
+	sprintf(msg, "Read payload status = 0x%04X\r\n", status);
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);
+
+    //we should be done
+    status = M24SR_Deselect(M24SR_I2C_READ);
+    sprintf(msg, "Deselect status = 0x%04X\r\n", status);
+    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+    LL_mDelay(20);
+
+    //M24SR_KillSession(M24SR_I2C_READ);
+
 	return status;
 }
 

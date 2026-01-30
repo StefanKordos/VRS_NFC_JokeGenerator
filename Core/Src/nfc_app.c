@@ -79,6 +79,7 @@ void NFC_ProcessRequest(char *rxText)
 			 */
 			break;
 
+
         default:
             /*
              * Not valid request
