@@ -144,6 +144,30 @@ int main(void)
   //M24SR_ManageRFGPO(M24SR_I2C_READ, 1);
 
 
+  /*----NDEF format test----*/
+  /*char myStaticJoke[] = "This is a static test joke";
+    uint8_t ndefBuffer[300];
+    uint16_t ndefLen;
+    ndefLen = Convert_to_NDEF(myStaticJoke, ndefBuffer);
+    if (ndefLen > 0) {
+        USART2_PutBuffer((uint8_t*)"NDEF Conversion Success!\r\n", 26);
+
+        for(int i=0; i<ndefLen; i++) {
+            sprintf(formatted_string, "%02X ", ndefBuffer[i]);
+            USART2_PutBuffer((uint8_t*)formatted_string, strlen(formatted_string));
+        }
+        USART2_PutBuffer((uint8_t*)"\r\n", 2);
+    } else {
+        USART2_PutBuffer((uint8_t*)"NDEF Failed (Too long?)\r\n", 25);
+    }
+    */
+
+  /*----Parse request + send NDEF file*/
+  char get_joke[] = "GET_JOKE";
+  char add_joke[] = "ADD_JOKE";
+
+  NFC_ProcessRequest(get_joke);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */

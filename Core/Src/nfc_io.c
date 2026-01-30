@@ -142,8 +142,6 @@ uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t
 	return status;
 }
 
-
-
 uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 {
 	if (text == NULL || ndef == NULL)
@@ -164,11 +162,11 @@ uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 	//Status byte 1B, Language code 2B "en", text text_lenB
 	uint16_t payload_length = 1 + 2 + text_len; //NFCForum-TS-RTD_Text_1.0 p.4
 
-		if (payload_length > 255)
-		{
-			printf("[NDEF ERROR] Payload length %d exceeds SR limit (255)!\r\n", payload_length);
-			return 0;
-		}
+	if (payload_length > 255)
+	{
+		printf("[NDEF ERROR] Payload length %d exceeds SR limit (255)!\r\n", payload_length);
+		return 0;
+	}
 
 	//Length of NDEF record
 	/*
@@ -230,117 +228,37 @@ uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 
 	memcpy(&ndef[9], text, text_len); //copy length of bytes without \0
 	return 2 + ndef_record_length; //2-byte "Length Header"
-
 }
 
-
-
-uint16_t Write_Ndef(uint8_t *ndef_message, uint16_t total_lenght)
+uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length)
 {
-    char msg2[200];
-    uint16_t status;
-    uint8_t counter = 0;
+	uint16_t status;
 
-    uint8_t zero[2] = {0, 0};
-    uint8_t lenBuf[2] = { total_lenght >> 8, total_lenght & 0xFF };
+	//Device select 0xAC: to send a request to the M24SR64-Y m24sr64-Y s.7.9
+	M24SR_KillSession(M24SR_I2C_WRITE); //if there is an active session -> kill
 
-    // Start I2C communication
-    M24SR_GetSession(M24SR_I2C_WRITE);
+	status = M24SR_SelectApplication(M24SR_I2C_WRITE); //select NDEF tag application m24sr64-y s.8.9
+	if (status != M24SR_ACTION_COMPLETED)
+		return status;
 
-    char msg[64];
-    counter = 1;
-        sprintf(msg, "cnt= %d\r\n", counter);
-        USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-        LL_mDelay(10);
-/*
-        uint8_t get_i2c_session = 0x52;
-            HAL_I2C_Master_Transmit(&hi2c1, M24SR_I2C_ADDR << 1,
-                                    &get_i2c_session, 1, 1000);
-            HAL_Delay(2);*/
+	status = M24SR_SelectNDEFfile(M24SR_I2C_WRITE, 0x0001); //select NDEF file m24sr64-y s. 3.1.1
+	if (status != M24SR_ACTION_COMPLETED)
+		return status;
 
-    // Send SelectNDEFTagApplication command
-    M24SR_SelectApplication(M24SR_I2C_READ);
+	status = M24SR_UpdateBinary(
+				M24SR_I2C_WRITE,
+				0x0000, //beginning of file
+				length, // total length (NLEN + record)
+				ndef_message
+			);
 
-    //TODO try this after select app
-    //M24SR_SelectCCfile();
+	if (status != M24SR_ACTION_COMPLETED)
+		return status;
 
-    counter = 2;
-    sprintf(msg, "cnt= %d\r\n", counter);
-    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-    LL_mDelay(10);
-/*
-    status = M24SR_SelectSystemfile(M24SR_I2C_READ);
-    counter = 3;
-        sprintf(msg, "cnt= %d\r\n", counter);
-        USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-        LL_mDelay(50);
-
-    // Select NDEF file
-    M24SR_Verify(M24SR_I2C_ADDR, 0x0001, 0x10, DefaultPassword);*/
-
-    status = M24SR_SelectNDEFfile(M24SR_I2C_READ, 0x0001);
-
-    if (status == M24SR_ERROR_TIMEOUT) {
-        sprintf(msg2, "Timeout \n\r");
-        //return status;
-    } else {
-        sprintf(msg2, "status: %d\n\r", status);
-    }
-
-    USART2_PutBuffer((uint8_t *)msg2, strlen(msg2));
-    LL_mDelay(50);
-
-    // Verify access with password for the NDEF file
-    M24SR_Verify(M24SR_I2C_READ , 0x0002, 0x10, DefaultPassword);
-
-    counter = 4;
-            sprintf(msg, "cnt= %d\r\n", counter);
-            USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-            LL_mDelay(50);
-
-    //invalidate
-    M24SR_UpdateBinary(M24SR_I2C_READ, 0x0000, 2, zero);
-
-    counter = 5;
-            sprintf(msg, "cnt= %d\r\n", counter);
-            USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-            LL_mDelay(50);
-
-    //write payload
-    M24SR_UpdateBinary(M24SR_I2C_READ, 0x0002, total_lenght, ndef_message);
-    counter = 6;
-    sprintf(msg, "cnt= %d\r\n", counter);
-    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-    LL_mDelay(50);
-
-    //commit
-    M24SR_UpdateBinary(M24SR_I2C_READ, 0x0000, 2, lenBuf);
-    counter = 7;
-    sprintf(msg, "cnt= %d\r\n", counter);
-    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-    LL_mDelay(50);
-
-
-
-    // Verify access with password for the system file
-    //M24SR_Verify(NFC_WRITE, 0x0001, 0x10, DefaultPassword);
-
-    // Re-select the NDEF file
-    //M24SR_SelectNDEFfile(NFC_WRITE, 0x0001);
-
-    // Read the length of the NDEF file
-    uint8_t buffer[2];
-    //M24SR_ReadBinary(NFC_WRITE, 0x00, 0x02, buffer);
-
-    // End communication
-    M24SR_Deselect(M24SR_I2C_READ);
-    M24SR_KillSession(M24SR_I2C_READ);
-    counter = 8;
-            sprintf(msg, "cnt= %d\r\n", counter);
-            USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-            LL_mDelay(50);
-
-
-    return status;
+	//end of communication
+	M24SR_Deselect(M24SR_I2C_WRITE);
+	return status;
 }
+
+
 
