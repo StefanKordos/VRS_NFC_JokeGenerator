@@ -138,34 +138,6 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 
 uint16_t NFC_IO_ReadMultiple(uint8_t DevAddr, uint8_t *pData, uint16_t Size)
 {
-/*
-	HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&hi2c1, DevAddr, 3, 100);
-	if (status != HAL_OK)
-	{
-	        return NFC_IO_ERROR_TIMEOUT;
-	} // polling already done in m24sr functions*/
-/*
-    if (HAL_I2C_Master_Receive(
-            &hi2c1,
-			DevAddr,
-            pData,
-            Size,
-			HAL_MAX_DELAY
-        ) != HAL_OK)
-    {
-    	char msg[64];
-    	sprintf(msg,
-    	"I2C RX FAIL: Dev=0x%02X Err=0x%lX State=%d\r\n",
-    	DevAddr,
-    	hi2c1.ErrorCode,
-    	hi2c1.State);
-    	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-    	LL_mDelay(150);
-
-        return NFC_IO_STATUS_ERROR;
-
-
-    }*/
 
     //try retry version:
 	HAL_StatusTypeDef status;
@@ -198,35 +170,6 @@ uint16_t NFC_IO_ReadMultiple(uint8_t DevAddr, uint8_t *pData, uint16_t Size)
 uint16_t NFC_IO_WriteMultiple(uint8_t Addr, uint8_t *pBuffer, uint16_t Length)
 {
 	HAL_StatusTypeDef status;
-/*
-	status = HAL_I2C_IsDeviceReady(&hi2c1, Addr, 3, 100);
-	if (status != HAL_OK)
-	{
-		char msg[64];
-		sprintf(msg,
-		"I2C TX FAIL: Dev=0x%02X Err=0x%lX State=%d\r\n",
-		Addr,
-		hi2c1.ErrorCode,
-		hi2c1.State);
-		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-		LL_mDelay(150);
-	    return NFC_IO_ERROR_TIMEOUT;
-	}*/
-/*
-	//i2c write
-	status = HAL_I2C_Master_Transmit(&hi2c1, Addr, pBuffer, Length, HAL_MAX_DELAY);
-	if (status != HAL_OK)
-	{
-	    char msg[64];
-	    		sprintf(msg,
-	    		"I2C TX FAIL: Dev=0x%02X Err=0x%lX State=%d\r\n",
-	    		Addr,
-	    		hi2c1.ErrorCode,
-	    		hi2c1.State);
-	    		USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-	    		LL_mDelay(10);
-	    	    return NFC_IO_ERROR_TIMEOUT;
-	}*/
 
 	//try retry version:
 	uint8_t retry;
