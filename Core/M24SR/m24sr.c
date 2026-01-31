@@ -1044,29 +1044,47 @@ uint16_t M24SR_UpdateBinary (uint16_t DeviceAddr, uint16_t Offset ,uint8_t NbByt
   {
     return M24SR_ERROR_TIMEOUT;
   }
-  status = M24SR_IsAnswerReady (DeviceAddr);
+  USART2_PutBuffer("write done - updt bin\r\n", strlen("write done - updt bin\r\n"));
+  LL_mDelay(20);
+  /*status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
     return status;
-  }
+  }*/
+  HAL_Delay(1);
+
   status = NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  M24SR_STATUSRESPONSE_NBBYTE);
   if (status != NFC_IO_STATUS_SUCCESS)
   {
     return M24SR_ERROR_TIMEOUT;
   }
-  /* if the response is a Watiting frame extenstion request */
+  USART2_PutBuffer("answer recieved - updt bin\r\n", strlen("answer recieved - updt bin\r\n"));
+  LL_mDelay(20);
+
+  // if the response is a Watiting frame extenstion request
   if (IsSBlock (pBuffer) == M24SR_STATUS_SUCCESS)
   {
-    /*check the CRC */
+    //check the CRC
     if (M24SR_IsCorrectCRC16Residue (pBuffer , M24SR_WATINGTIMEEXTRESPONSE_NBBYTE) != M24SR_ERROR_CRC)
     {
-      /* send the FrameExension response*/
+      USART2_PutBuffer("before frame ext\r\n", strlen("before frame ext\r\n"));
+      LL_mDelay(20);
+      // send the FrameExension response
       status = M24SR_FWTExtension (DeviceAddr,  pBuffer [M24SR_OFFSET_PCB+1]);
+
+      char msg[64];
+      sprintf(msg, "FWTE status = 0x%04X\r\n", status);
+      USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+      LL_mDelay(20);
     }
   }
   else
   {
     status = M24SR_IsCorrectCRC16Residue (pBuffer, M24SR_STATUSRESPONSE_NBBYTE);
+    char msg[64];
+    sprintf(msg, "CRC status = 0x%04X\r\n", status);
+    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+    LL_mDelay(20);
   }
 
   return status;

@@ -235,28 +235,39 @@ uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length)
 	uint16_t status;
 
 	//Device select 0xAC: to send a request to the M24SR64-Y m24sr64-Y s.7.9
-	M24SR_KillSession(M24SR_I2C_WRITE); //if there is an active session -> kill
+	M24SR_KillSession(M24SR_DEVICE_ADDR_W); //if there is an active session -> kill
 
-	status = M24SR_SelectApplication(M24SR_I2C_WRITE); //select NDEF tag application m24sr64-y s.8.9
+	status = M24SR_SelectApplication(M24SR_DEVICE_ADDR_W); //select NDEF tag application m24sr64-y s.8.9
 	if (status != M24SR_ACTION_COMPLETED)
 		return status;
 
-	status = M24SR_SelectNDEFfile(M24SR_I2C_WRITE, 0x0001); //select NDEF file m24sr64-y s. 3.1.1
+	status = M24SR_SelectNDEFfile(M24SR_DEVICE_ADDR_W, 0x0001); //select NDEF file m24sr64-y s. 3.1.1
 	if (status != M24SR_ACTION_COMPLETED)
 		return status;
+
+	USART2_PutBuffer("file selected\r\n", strlen("file selected\r\n"));
+	LL_mDelay(20);
 
 	status = M24SR_UpdateBinary(
-				M24SR_I2C_WRITE,
+			M24SR_DEVICE_ADDR_W,
 				0x0000, //beginning of file
 				length, // total length (NLEN + record)
 				ndef_message
 			);
 
-	if (status != M24SR_ACTION_COMPLETED)
+	if (status != M24SR_ACTION_COMPLETED){
+		USART2_PutBuffer("write fail\r\n", strlen("write fail\r\n"));
+		LL_mDelay(20);
 		return status;
+	}
+
+	USART2_PutBuffer("write deselect not done\r\n", strlen("write deselect not done\r\n"));
+	LL_mDelay(20);
 
 	//end of communication
-	M24SR_Deselect(M24SR_I2C_WRITE);
+	M24SR_Deselect(M24SR_DEVICE_ADDR_W);
+	USART2_PutBuffer("write deselect done\r\n", strlen("write deselect done\r\n"));
+	LL_mDelay(50);
 	return status;
 }
 
