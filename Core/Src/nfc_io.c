@@ -137,7 +137,11 @@ uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t
     USART2_PutBuffer((uint8_t *)msg, strlen(msg));
     LL_mDelay(20);
 
-    //M24SR_KillSession(M24SR_I2C_READ);
+    M24SR_KillSession(M24SR_I2C_READ);
+    LL_mDelay(20);
+
+
+
 
 	return status;
 }
@@ -233,6 +237,7 @@ uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length)
 {
 	uint16_t status;
+	char msg[64];
 
 	//Device select 0xAC: to send a request to the M24SR64-Y m24sr64-Y s.7.9
 	M24SR_KillSession(M24SR_DEVICE_ADDR_W); //if there is an active session -> kill
@@ -255,14 +260,18 @@ uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length)
 				ndef_message
 			);
 
-	if (status != M24SR_ACTION_COMPLETED){
+	sprintf(msg, "updateBinary status = 0x%04X\r\n", status); //to check if session open
+	USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+	LL_mDelay(20);
+
+	if (status != NFC_IO_STATUS_SUCCESS){
 		USART2_PutBuffer("write fail\r\n", strlen("write fail\r\n"));
 		LL_mDelay(20);
-		return status;
+		//return status;
 	}
 
-	USART2_PutBuffer("write deselect not done\r\n", strlen("write deselect not done\r\n"));
-	LL_mDelay(20);
+	//USART2_PutBuffer("write deselect not done\r\n", strlen("write deselect not done\r\n"));
+	//LL_mDelay(20);
 
 	//end of communication
 	M24SR_Deselect(M24SR_DEVICE_ADDR_W);

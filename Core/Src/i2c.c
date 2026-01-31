@@ -144,7 +144,7 @@ uint16_t NFC_IO_ReadMultiple(uint8_t DevAddr, uint8_t *pData, uint16_t Size)
 
     uint8_t retry;
     for (retry = 0; retry < 5; retry++) {
-    	    status = HAL_I2C_Master_Receive(&hi2c1, ((M24SR_ADDR << 1) | 0x01), pData, 256, 200);
+    	    status = HAL_I2C_Master_Receive(&hi2c1, ((M24SR_ADDR << 1) | 0x01), pData, Size, 200);
     	    if (status == HAL_OK) break;
     	    HAL_Delay(5);
     }

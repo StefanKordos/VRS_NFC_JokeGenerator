@@ -483,18 +483,25 @@ static uint16_t M24SR_FWTExtension (uint16_t DeviceAddr, uint8_t FWTbyte)
   {
     return M24SR_ERROR_TIMEOUT;
   }
+  USART2_PutBuffer("fwte write done\r\n", strlen("fwte write done\r\n"));
+  LL_mDelay(20);
+  /*
   status = M24SR_IsAnswerReady (DeviceAddr);
   if (status != M24SR_STATUS_SUCCESS)
   {
     return status;
   }
+  */
+  HAL_Delay(1);
   /* read the response */
   if ( NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  M24SR_STATUSRESPONSE_NBBYTE) != NFC_IO_STATUS_SUCCESS)
   {
     return M24SR_ERROR_TIMEOUT;
   }
-
-  status = M24SR_IsCorrectCRC16Residue (pBuffer, M24SR_STATUSRESPONSE_NBBYTE);
+  USART2_PutBuffer("fwte read done\r\n", strlen("fwte read done\r\n"));
+  LL_mDelay(20);
+  status = 0;
+  //status = M24SR_IsCorrectCRC16Residue (pBuffer, M24SR_STATUSRESPONSE_NBBYTE); // <-- gets stuck in here
   return status;
 }
 
@@ -622,6 +629,7 @@ uint16_t M24SR_KillSession (uint16_t DeviceAddr)
   HAL_Delay(5);
 
   BlockNumber = TOGGLE ( BlockNumber );
+  //BlockNumber = 0x01;
 
   return M24SR_ACTION_COMPLETED;
 }

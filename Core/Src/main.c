@@ -130,7 +130,22 @@ int main(void)
   uint16_t status = 0;
 
 
-  M24SR_Init(M24SR_I2C_READ, M24SR_GPO_POLLING); //M24SR_WAITINGTIME_POLLING
+  M24SR_Init(((M24SR_ADDR << 1) | 0x00), M24SR_GPO_POLLING); //M24SR_WAITINGTIME_POLLING
+
+  //datasheet p. 24
+  //M24SR_ManageRFGPO(M24SR_I2C_READ, 1);
+  /*status = NFC_IO_IsDeviceReady(M24SR_I2C_READ, 3);
+
+   if (status == NFC_IO_STATUS_SUCCESS)
+   {
+       USART2_PutBuffer((uint8_t *)"M24SR READY\r\n", 13);
+       LL_mDelay(50);
+   }
+   else
+   {
+       USART2_PutBuffer((uint8_t *)"M24SR NOT READY\r\n", 18);
+       LL_mDelay(50);
+   }*/
 
 
   status = M24SR_KillSession(M24SR_I2C_READ);
@@ -139,9 +154,6 @@ int main(void)
   LL_mDelay(50);
 
 
-
-  //datasheet p. 24
-  //M24SR_ManageRFGPO(M24SR_I2C_READ, 1);
 
 
   /*----NDEF format test----*/
@@ -166,7 +178,7 @@ int main(void)
   char get_joke[] = "GET_JOKE";
   char add_joke[] = "ADD_JOKE";
 
-  NFC_ProcessRequest(get_joke);
+  //NFC_ProcessRequest(get_joke);
 
   /* USER CODE END 2 */
 
@@ -197,13 +209,13 @@ int main(void)
 	  //NFC_IO_ReadState(&state);
 	  //USART2_PutBuffer((uint8_t *)"NFC alive\r\n", 11);
 	  //LL_mDelay(100);
-
-	  /*if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
+/*
+	  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
 	          USART2_PutBuffer((uint8_t *)"GPO=HIGH\r\n", 10);
 	      else
-	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);
+	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);*/
 
-	      LL_mDelay(100);*/
+	  //LL_mDelay(50);
 
 
 	  uint8_t ndef_raw[256];
@@ -227,8 +239,15 @@ int main(void)
 	    LL_mDelay(20);
 	    uint8_t langLen = ndef_raw[4] & 0x3F;
 	    USART2_PutBuffer(&ndef_raw[5 + langLen], ndef_raw[2] - 1 - langLen);
+	    LL_mDelay(100);
+
+
+	    NFC_ProcessRequest(get_joke);
+
 
 	    LL_mDelay(3000000);
+
+
 
 
 
