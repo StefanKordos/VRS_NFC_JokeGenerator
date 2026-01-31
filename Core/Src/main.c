@@ -166,7 +166,7 @@ int main(void)
   char get_joke[] = "GET_JOKE";
   char add_joke[] = "ADD_JOKE";
 
-  NFC_ProcessRequest(get_joke);
+  //NFC_ProcessRequest(get_joke);
 
   /* USER CODE END 2 */
 
