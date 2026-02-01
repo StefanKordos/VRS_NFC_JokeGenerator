@@ -51,7 +51,7 @@ void MX_GPIO_Init(void)
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_3|LL_GPIO_PIN_6;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO; ; //TODO try pullup for pin 6
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_UP; ; //TODO try pullup for pin 6
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /**/

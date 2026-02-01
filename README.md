@@ -41,7 +41,7 @@ Janíček Radoslav
 
 Mobilná aplikácia zapíše NFC požiadavku alebo vtip do NFC tagu.
 
-STM32 prijme signál o zmene dát (GPO).
+STM32 prijme signál o zmene dát.
 
 STM32 načíta NFC správu cez I2C.
 
@@ -77,7 +77,7 @@ Integrácia knižnice pre NFC modul
 
 Inicializácia I2C komunikácie
 
-Detekcia zápisu na NFC tag cez GPO pin
+Detekcia poziadavky od používateľa pomocou tlačidla
 
 Čítanie prichádzajúcej požiadavky alebo vtipu
 

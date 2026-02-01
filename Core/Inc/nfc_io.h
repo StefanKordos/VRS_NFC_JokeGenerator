@@ -57,7 +57,7 @@ uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length);
 /* M24SR I2C address (7-bit) */
 #define M24SR_ADDR              0x56
 
-
+uint16_t Extract_Text_From_NDEF(const uint8_t *ndef, char *text_out, uint16_t max_len);
 uint16_t Convert_to_NDEF(char *text, uint8_t *ndef);
 uint16_t Write_Joke_to_NFC(uint8_t *ndef_message, uint16_t length);
 

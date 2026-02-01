@@ -217,39 +217,60 @@ int main(void)
 	  if (LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_6))
 	          USART2_PutBuffer((uint8_t *)"GPO=HIGH\r\n", 10);
 	      else
-	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);*/
+	          USART2_PutBuffer((uint8_t *)"GPO=LOW\r\n", 9);
 
-	  //LL_mDelay(50);
+	  LL_mDelay(50);*/
 
+	  if (!LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_3)){
+		  USART2_PutBuffer((uint8_t *)"PA3=set\r\n", 9);
+		  LL_mDelay(20);
 
-	  uint8_t ndef_raw[256];
-	  uint16_t ndef_len = 0;
+		  uint8_t ndef_raw[256];
+		  char text_out[256];
+		  uint16_t ndef_len = 0;
 
-	    //i2c read test
-	    LL_mDelay(100);
-	    status = Read_NDEF_From_NFC(ndef_raw, sizeof(ndef_raw), &ndef_len);
-	    LL_mDelay(100);
-
-
-	    //char msg[64];
-	    sprintf(msg, "Read status: 0x%04X, len: %u\r\n", status, ndef_len);
-	    USART2_PutBuffer((uint8_t *)msg, strlen(msg));
-	    LL_mDelay(20);
-	    USART2_PutBuffer("\r\n", 2);
-	    LL_mDelay(20);
-	    PrintHex(ndef_raw, ndef_len);
-	    LL_mDelay(20);
-	    USART2_PutBuffer("\r\n", 2);
-	    LL_mDelay(20);
-	    uint8_t langLen = ndef_raw[4] & 0x3F;
-	    USART2_PutBuffer(&ndef_raw[5 + langLen], ndef_raw[2] - 1 - langLen);
-	    LL_mDelay(100);
+		  //i2c read test
+		  LL_mDelay(100);
+		  status = Read_NDEF_From_NFC(ndef_raw, sizeof(ndef_raw), &ndef_len);
+		  LL_mDelay(100);
 
 
-	    NFC_ProcessRequest(get_joke);
+		  //char msg[64];
+		  sprintf(msg, "Read status: 0x%04X, len: %u\r\n", status, ndef_len);
+		  USART2_PutBuffer((uint8_t *)msg, strlen(msg));
+		  LL_mDelay(20);
+		  USART2_PutBuffer("\r\n", 2);
+		  LL_mDelay(20);
+		  PrintHex(ndef_raw, ndef_len);
+		  LL_mDelay(20);
+		  USART2_PutBuffer("\r\n", 2);
+		  LL_mDelay(20);
+		  uint8_t langLen = ndef_raw[4] & 0x3F;
+		  USART2_PutBuffer(&ndef_raw[5 + langLen], ndef_raw[2] - 1 - langLen);
+		  LL_mDelay(20);
+		  USART2_PutBuffer("\r\n", 2);
+		  LL_mDelay(20);
+
+		  Extract_Text_From_NDEF(ndef_raw , text_out, 256);
+		  LL_mDelay(20);
+
+		  USART2_PutBuffer(&text_out, strlen(text_out));
+		  LL_mDelay(20);
+		  USART2_PutBuffer("\r\n", 2);
+		  LL_mDelay(100);
+
+		  NFC_ProcessRequest(text_out);
 
 
-	    LL_mDelay(3000000);
+	  }
+	  else {
+		  //USART2_PutBuffer((uint8_t *)"PA3=not set\r\n", 13);
+		  //LL_mDelay(20);
+	  }
+
+
+	  LL_mDelay(20);
+
 
 
 

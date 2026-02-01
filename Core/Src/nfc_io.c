@@ -146,6 +146,42 @@ uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t
 	return status;
 }
 
+uint16_t Extract_Text_From_NDEF(const uint8_t *ndef,
+		                        char *text_out,
+                                uint16_t max_len)
+{
+    if (!ndef || !text_out)
+        return 0;
+
+ /*
+     * [0–1] NLEN
+     * [2]   Flags
+     * [3]   Type Length
+     * [4]   Payload Length
+     * [5]   Type ('T')
+     * [6]   Status byte
+     * [7–8] Language ("en")
+     * [9+]  Text
+     */
+
+    uint8_t payload_len = ndef[2];
+    uint8_t lang_len = ndef[4] & 0x3F;
+
+   uint16_t text_len = payload_len - 1 - lang_len;
+   uint16_t text_offset = 5 + lang_len;
+
+
+
+    if (text_len == 0 || text_len >= max_len)
+        return 0;
+
+    memcpy(text_out, &ndef[text_offset], text_len);
+    text_out[text_len] = '\0';
+
+    return text_len;
+}
+
+
 uint16_t Convert_to_NDEF(char *text, uint8_t *ndef)
 {
 	if (text == NULL || ndef == NULL)
