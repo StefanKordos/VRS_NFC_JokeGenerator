@@ -72,7 +72,7 @@ uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t
 	*out_ndef_length = 0;
 
 	//opens session
-	status = M24SR_KillSession(M24SR_DEVICE_ADDR_W);
+	status = M24SR_KillSession(M24SR_I2C_READ);
 	HAL_Delay(10);
 	uint8_t counter = 1;
 	sprintf(msg, "Kill session status = 0x%04X\r\n", status); //to check if session open
@@ -124,7 +124,7 @@ uint16_t Read_NDEF_From_NFC(uint8_t *ndef_buffer, uint16_t buffer_size, uint16_t
 
 
 	//read payload
-	uint8_t ndef[256];  // must be >= nlen
+	//uint8_t ndef[256];  // must be >= nlen
 	status = M24SR_ReadBinary(M24SR_I2C_READ, 0x0002, nlen, ndef_buffer);
 	counter = 8;
 	sprintf(msg, "Read payload status = 0x%04X\r\n", status);

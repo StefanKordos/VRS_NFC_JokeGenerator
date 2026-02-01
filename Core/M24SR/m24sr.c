@@ -660,10 +660,10 @@ uint16_t M24SR_Deselect (uint16_t DeviceAddr)
   HAL_Delay(1);
 
   /* flush the M24SR buffer */
-  /*if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  M24SR_DESELECTREQUEST_NBBYTE) != NFC_IO_STATUS_SUCCESS)
+  if (NFC_IO_ReadMultiple (DeviceAddr , pBuffer,  M24SR_DESELECTREQUEST_NBBYTE) != NFC_IO_STATUS_SUCCESS)
   {
     return M24SR_ERROR_TIMEOUT;
-  }*/
+  }
 
   return M24SR_ACTION_COMPLETED;
 }
