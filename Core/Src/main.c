@@ -58,8 +58,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint8_t ndefBuffer[256];
-static uint8_t uidBuffer[7];
+//static uint8_t ndefBuffer[256];
+//static uint8_t uidBuffer[7];
 
 
 /* USER CODE END PV */
@@ -152,10 +152,15 @@ int main(void)
    }*/
 
 
+
+
   status = M24SR_KillSession(M24SR_I2C_READ);
   sprintf(msg, "M24SR found. Kill session status: 0x%04X\r\n", status);
   USART2_PutBuffer((uint8_t *)msg, strlen(msg));
   LL_mDelay(50);
+
+  //to prevent blocked nfc at startup
+  M24SR_Deselect(M24SR_I2C_READ);
 
 
 

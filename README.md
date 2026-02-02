@@ -105,4 +105,6 @@ Posielanie vtipu na uloženie do databázy
 
 Zobrazenie prijatého textu
 
+Link na repozitár: https://github.com/angie357/vrs-projekt
+
 Priradený člen: Angelika Loduhová
