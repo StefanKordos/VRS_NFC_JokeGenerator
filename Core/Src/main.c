@@ -27,6 +27,14 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "ff.h"
+#include "string.h"
+#include "ff_gen_drv.h"
+#include "sd_spi.h"
+
+#include "sd_card.h"
+#include "jokes.h"
+
 
 #include <stdio.h>
 #include <string.h>
@@ -129,9 +137,31 @@ int main(void)
   MX_SPI1_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+
   char formatted_string[100];
   char msg[128];
   uint16_t status = 0;
+
+  FATFS fs;
+  FIL file;
+  FRESULT res;
+
+  res = f_mount(&fs, "", 1);
+
+  char joke[200];
+
+  res = f_open(&file, "jokes.txt", FA_READ);
+  if (res == FR_OK) {
+      f_gets(joke, sizeof(joke), &file);
+      f_close(&file);
+  }
+
+  /*res = f_open(&file, "jokes.txt", FA_OPEN_APPEND | FA_WRITE);
+  if (res == FR_OK) {
+      f_puts("Novy vtip zo STM32 😄\n", &file);
+      f_close(&file);
+  }*/
+
 
 
   M24SR_Init(((M24SR_ADDR << 1) | 0x00), M24SR_GPO_POLLING); //M24SR_WAITINGTIME_POLLING
